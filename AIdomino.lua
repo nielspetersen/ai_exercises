@@ -1,115 +1,54 @@
 require "nn"
-require "csvreading.lua"
 
+function main()
 
-local convnet = nn.Sequential();
+  local csvreader = require "csvreading"
+  local dataaugmenter = require "dataaugmentation"
 
-convnet:add(nn.SpatialConvolution(3, 64, 5, 5,1,1,2,2))
-convnet:add(nn.ReLU())
-convnet:add(nn.SpatialConvolution(64, 64, 3, 3,1,1,1,1))
-convnet:add(nn.ReLU())
-convnet:add(nn.SpatialConvolution(64, 64, 3, 3,1,1,1,1))
-convnet:add(nn.ReLU())
-convnet:add(nn.SpatialConvolution(64, 64, 3, 3,1,1,1,1))
-convnet:add(nn.ReLU())
-convnet:add(nn.SpatialConvolution(64, 64, 3, 3,1,1,1,1))
-convnet:add(nn.ReLU())
-convnet:add(nn.SpatialConvolution(64, 1, 3, 3,1,1,1,1))
---convnet:add(nn.View(9))
---convnet:add(nn.SoftMax())
---convnet:add(nn.View(3,3))
+  local function setUp()
+    --load data from CSV file
+    csvreader.loadData("domineering.csv")
+    x = torch.load("input.txt", "ascii")
+    y = torch.load("output.txt", "ascii")
+    -- augmentate training data
+    input, output = dataaugmenter.augmentateData(x, y)
+    print("Data has been augmented")
+    torch.save("augmentedinputdata.txt", input, "ascii")
+    torch.save("augmentedoutputdata.txt", output, "ascii")
+  end
 
+  local convnet = nn.Sequential()
+  local nplanes = 64 -- hidden nodes
+  local num_rows = 4000 -- total number of training cases
 
+  convnet:add(nn.SpatialConvolution(3, nplanes, 5, 5,1,1,2,2))
+  convnet:add(nn.ReLU())
+  convnet:add(nn.SpatialConvolution(nplanes, nplanes, 3, 3,1,1,1,1))
+  convnet:add(nn.ReLU())
+  convnet:add(nn.SpatialConvolution(nplanes, nplanes, 3, 3,1,1,1,1))
+  convnet:add(nn.ReLU())
+  convnet:add(nn.SpatialConvolution(nplanes, nplanes, 3, 3,1,1,1,1))
+  convnet:add(nn.ReLU())
+  convnet:add(nn.SpatialConvolution(nplanes, nplanes, 3, 3,1,1,1,1))
+  convnet:add(nn.ReLU())
+  convnet:add(nn.SpatialConvolution(nplanes, 1, 3, 3,1,1,1,1))
+  convnet:add(nn.View(64))
+  convnet:add(nn.SoftMax())
+  convnet:add(nn.View(8,8))
 
-criterion = nn.MSECriterion()
+  criterion = nn.MSECriterion()
+  error = 1
 
-for i = 1,2500 do
+  setUp()
 
-  local input = torch.DoubleTensor(3,3,3);
-  local output = torch.DoubleTensor(1,3,3);
+  for i = 1,num_rows do
+      error = criterion:forward(convnet:forward(input[i]), output[i])
+      convnet:zeroGradParameters()
+      convnet:backward(input[i], criterion:backward(convnet.output, output[i]))
+      convnet:updateParameters(0.01)
+  end
 
-    -- Input
-    input[1][1][1]=1
-    input[1][1][2]=1
-    input[1][1][3]=0
-    input[1][2][1]=0
-    input[1][2][2]=0
-    input[1][2][3]=0
-    input[1][3][1]=0
-    input[1][3][2]=0
-    input[1][3][3]=0
-
-    input[2][1][1]=0
-    input[2][1][2]=0
-    input[2][1][3]=1
-    input[2][2][1]=1
-    input[2][2][2]=1
-    input[2][2][3]=1
-    input[2][3][1]=1
-    input[2][3][2]=1
-    input[2][3][3]=1
-
-    input[3][1][1]=1
-    input[3][1][2]=1
-    input[3][1][3]=1
-    input[3][2][1]=1
-    input[3][2][2]=1
-    input[3][2][3]=1
-    input[3][3][1]=1
-    input[3][3][2]=1
-    input[3][3][3]=1
-
-
-    --Output
-     output[1][1][1]=0
-     output[1][1][2]=0
-     output[1][1][3]=0
-     output[1][2][1]=0
-     output[1][2][2]=1
-     output[1][2][3]=0
-     output[1][3][1]=0
-     output[1][3][2]=1
-     output[1][3][3]=0
-
-  criterion:forward(convnet:forward(input), output [1])
-
-
-  convnet:zeroGradParameters()
-  convnet:backward(input, criterion:backward(convnet.output, output))
-  convnet:updateParameters(0.01)
-
+  print("Total error after 4000 iterations:"..error)
 end
 
-x = torch.Tensor(3,3,3)
-    x[1][1][1]=1
-    x[1][1][2]=1
-    x[1][1][3]=0
-    x[1][2][1]=0
-    x[1][2][2]=0
-    x[1][2][3]=0
-    x[1][3][1]=0
-    x[1][3][2]=0
-    x[1][3][3]=0
-
-    x[2][1][1]=0
-    x[2][1][2]=0
-    x[2][1][3]=1
-    x[2][2][1]=1
-    x[2][2][2]=1
-    x[2][2][3]=1
-    x[2][3][1]=1
-    x[2][3][2]=1
-    x[2][3][3]=1
-
-    x[3][1][1]=1
-    x[3][1][2]=1
-    x[3][1][3]=1
-    x[3][2][1]=1
-    x[3][2][2]=1
-    x[3][2][3]=1
-    x[3][3][1]=1
-    x[3][3][2]=1
-    x[3][3][3]=1
-
-print('Test 1: Case 3')
-print(convnet:forward(x))
+main()

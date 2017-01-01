@@ -1,8 +1,9 @@
 require 'image'
 
-function augmentateData(x,y)
+local M = {}
+function M.augmentateData(x,y)
   offsetx = x:size(1) -- number of rows before resizing
-  offtsety = y:size(1)
+  offsety = y:size(1) --number of rows before resizing
 
   x:resizeAs(torch.Tensor(4000,3,8,8))
   y:resizeAs(torch.Tensor(4000,1,8,8))
@@ -23,7 +24,7 @@ function augmentateData(x,y)
   o = 1
   for i=1, offsety do -- row of the Tensor
     for z=1, 3 do
-      for j=1, y:size(2) do -- column for the matrix (not_empty, empty, vertical)
+      for j=1, y:size(2) do -- column for the matrix (output)
         a = flip(y[i][j], z)
         y[offsety + o][j] = a
       end
@@ -35,18 +36,15 @@ function augmentateData(x,y)
 end
 
 function flip(matrix, type)
+    local result = torch.Tensor(8,8)
     if type == 1 then
-      result = image:hflip(matrix)
+      result = image.hflip(matrix)
     elseif type == 2 then
-      result = image:vflip(matrix)
+      result = image.vflip(matrix)
     elseif type == 3 then
       result = image.hflip(image.vflip(matrix))
     end
     return result;
 end
 
-input = torch.load("input.txt", "ascii")
-output = torch.load("output.txt", "ascii")
-x, y = augmentateData(input, output)
-torch.save("augmentedinputdata.txt", x, "ascii")
-torch.save("augmentedoutputdata.txt", y, "ascii")
+return M

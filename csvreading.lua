@@ -1,3 +1,5 @@
+local M = {}
+
 function string:splitAtCommas()
   local sep, values = ",", {}
   local pattern = string.format("([^%s]+)", sep)
@@ -8,7 +10,7 @@ function string:splitAtCommas()
   return values
 end
 
-function loadData(dataFile)
+function M.loadData(dataFile)
   local dataset = {}
   i = 1
   local x = torch.Tensor(1000,3,8,8) -- input values
@@ -42,11 +44,11 @@ function loadData(dataFile)
 
   function dataset:size()
     return (i - 1)
-    end -- the requirement mentioned
+    end
 
   -- save into textfile / Task 3.1
   torch.save("input.txt", x, "ascii")
   torch.save("output.txt", y, "ascii")
 end
 
-loadData("domineering.csv")
+return M
