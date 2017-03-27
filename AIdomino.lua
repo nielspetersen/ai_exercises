@@ -7,14 +7,14 @@ function main()
 
   local function setUp()
     --load data from CSV file
-    csvreader.loadData("domineering.csv")
-    x = torch.load("input.txt", "ascii")
-    y = torch.load("output.txt", "ascii")
+    csvreader.loadData("data/domineering.csv")
+    x = torch.load("data/input.txt", "ascii")
+    y = torch.load("data/output.txt", "ascii")
     -- augmentate training data
     input, output = dataaugmenter.augmentateData(x, y)
     print("Data has been augmented")
-    torch.save("augmentedinputdata.txt", input, "ascii")
-    torch.save("augmentedoutputdata.txt", output, "ascii")
+    torch.save("data/augmentedinputdata.txt", input, "ascii")
+    torch.save("data/augmentedoutputdata.txt", output, "ascii")
   end
 
   local convnet = nn.Sequential()

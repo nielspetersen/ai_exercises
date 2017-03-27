@@ -47,8 +47,8 @@ function M.loadData(dataFile)
     end
 
   -- save into textfile / Task 3.1
-  torch.save("input.txt", x, "ascii")
-  torch.save("output.txt", y, "ascii")
+  torch.save("data/input.txt", x, "ascii")
+  torch.save("data/output.txt", y, "ascii")
 end
 
 return M
